@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Checkout | RJElectronicHub</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .checkout-img { width: 60px; height: 60px; object-fit: contain; margin-right: 10px; vertical-align: middle; }
+        .checkout li { margin-bottom: 10px; display: flex; align-items: center; }
+        .checkout button { margin-left: 10px; }
+        .payment-options button { margin-right: 10px; margin-top: 10px; }
+        #gpay-qr, #payment-form, #bank-form { margin-top: 20px; }
+        #payment-form, #bank-form { display: none; border:1px solid #ccc; padding:15px; border-radius:8px; background:#f9f9f9; }
+        #payment-form input, #bank-form input { width:100%; padding:8px; margin-top:5px; margin-bottom:15px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <div class="logo">RJ<span>ElectronicHub</span></div>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="checkout.html">Checkout</a>
+        <a href="#cart">Cart (<span id="cart-count">0</span>)</a>
+    </nav>
+</header>
+
+<section class="checkout">
+    <h2>Your Cart</h2>
+    <ul id="checkout-items"></ul>
+    <p id="checkout-total"></p>
+
+    <!-- Payment Options -->
+    <div class="payment-options">
+        <button id="gpay">GPay</button>
+        <button id="paypal">PayPal</button>
+        <button id="bank">Bank Transfer</button>
+        <button id="cod">Cash on Delivery</button>
+    </div>
+
+    <!-- GPay QR Code -->
+    <div id="gpay-qr"></div>
+
+    <!-- Generic Payment Form for PayPal / COD -->
+    <div id="payment-form">
+        <h3 id="payment-form-title"></h3>
+        <label>Name:</label>
+        <input type="text" id="pf-name" placeholder="Enter your name">
+        <label id="pf-extra-label1"></label>
+        <input type="text" id="pf-extra-input1" placeholder="">
+        <label id="pf-extra-label2"></label>
+        <input type="text" id="pf-extra-input2" placeholder="">
+        <button onclick="submitPaymentDetails()">Submit Payment</button>
+    </div>
+
+    <!-- Bank Transfer Form -->
+    <div id="bank-form">
+        <h3>Bank Transfer Details</h3>
+        <p><strong>Bank Name:</strong> State Bank of India</p>
+        <p><strong>Account Name:</strong> RJ ElectronicHub</p>
+        <p><strong>Account Number:</strong> 1234567890</p>
+        <p><strong>IFSC Code:</strong> SBIN0001234</p>
+        <hr>
+        <label>Your Name:</label>
+        <input type="text" id="customer-name" placeholder="Enter your name">
+        <label>Transaction ID:</label>
+        <input type="text" id="transaction-id" placeholder="Enter bank transaction ID">
+        <button onclick="confirmBankTransfer()">Submit Payment Details</button>
+    </div>
+
+    <button onclick="window.location.href='index.html'">Back to Home</button>
+</section>
+
+<footer>
+    <p>© 2026 RJElectronicHub. All Rights Reserved.</p>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>
+let cart = JSON.parse(localStorage.getItem('cart')) || [];
+
+// Render Checkout Cart
+function renderCheckout() {
+    const checkoutItems = document.getElementById("checkout-items");
+    const checkoutTotal = document.getElementById("checkout-total");
+    checkoutItems.innerHTML = "";
+    let total = 0;
+
+    if(cart.length === 0){
+        checkoutItems.innerHTML = "<li>Your cart is empty</li>";
+        checkoutTotal.innerText = "";
+        return;
+    }
+
+    cart.forEach((item,index)=>{
+        total += item.price;
+        const li = document.createElement("li");
+        const img = document.createElement("img");
+        img.src = item.img || "images/default-product.jpg";
+        img.alt = item.name;
+        img.classList.add("checkout-img");
+
+        const span = document.createElement("span");
+        span.textContent = `${item.name} - ₹${item.price.toLocaleString('en-IN')}`;
+
+        const removeBtn = document.createElement("button");
+        removeBtn.textContent = "Remove";
+        removeBtn.onclick = ()=>removeFromCart(index);
+
+        li.appendChild(img);
+        li.appendChild(span);
+        li.appendChild(removeBtn);
+        checkoutItems.appendChild(li);
+    });
+
+    checkoutTotal.innerHTML = `<strong>Total: ₹${total.toLocaleString('en-IN')}</strong>`;
+}
+
+// Remove from Cart
+function removeFromCart(index){
+    cart.splice(index,1);
+    localStorage.setItem('cart',JSON.stringify(cart));
+    renderCheckout();
+    updateCartCount();
+    document.getElementById("gpay-qr").innerHTML="";
+    document.getElementById("payment-form").style.display="none";
+}
+
+// Update cart count
+function updateCartCount(){
+    document.getElementById("cart-count").innerText = cart.length;
+}
+
+// Clear cart
+function clearCartAfterPayment(){
+    cart=[];
+    localStorage.setItem('cart',JSON.stringify(cart));
+    renderCheckout();
+    updateCartCount();
+    document.getElementById("gpay-qr").innerHTML="";
+    document.getElementById("payment-form").style.display="none";
+    document.getElementById("bank-form").style.display="none";
+}
+
+// Handle payment
+function handlePayment(method){
+    if(cart.length===0){ alert("Your cart is empty!"); return;}
+    const totalAmount = cart.reduce((sum,i)=>sum+i.price,0);
+
+    // hide all forms
+    document.getElementById("gpay-qr").innerHTML="";
+    document.getElementById("payment-form").style.display="none";
+    document.getElementById("bank-form").style.display="none";
+
+    switch(method){
+        case 'gpay': {
+            const upiId="merchant@upi";
+            const payeeName="RJ ElectronicHub";
+            const transactionNote="Order Payment";
+            const upiLink = `upi://pay?pa=${encodeURIComponent(upiId)}&pn=${encodeURIComponent(payeeName)}&tn=${encodeURIComponent(transactionNote)}&am=${totalAmount}&cu=INR`;
+
+            if(/Android|iPhone|iPad/i.test(navigator.userAgent)){
+                window.location.href=upiLink;
+            } else {
+                const qrContainer=document.getElementById("gpay-qr");
+                new QRCode(qrContainer,{text:upiLink,width:200,height:200});
+                alert(`Scan QR with Google Pay or any UPI app to pay ₹${totalAmount.toLocaleString('en-IN')}`);
+            }
+            break;
+        }
+        case 'paypal':
+            showPaymentForm('paypal');
+            break;
+        case 'bank':
+            document.getElementById("bank-form").style.display="block";
+            break;
+        case 'cod':
+            showPaymentForm('cod');
+            break;
+    }
+}
+
+// Show generic payment form
+function showPaymentForm(method){
+    const form=document.getElementById("payment-form");
+    const title=document.getElementById("payment-form-title");
+    const lbl1=document.getElementById("pf-extra-label1");
+    const input1=document.getElementById("pf-extra-input1");
+    const lbl2=document.getElementById("pf-extra-label2");
+    const input2=document.getElementById("pf-extra-input2");
+
+    form.style.display="block";
+    document.getElementById("pf-name").value="";
+    input1.value="";
+    input2.value="";
+
+    switch(method){
+        case 'paypal':
+            title.textContent=`PayPal Payment Details`;
+            lbl1.textContent="PayPal Email:";
+            input1.placeholder="Enter your PayPal email";
+            lbl2.textContent="PayPal Password:";
+            input2.placeholder="Enter your PayPal password";
+            break;
+        case 'cod':
+            title.textContent=`Cash on Delivery Details`;
+            lbl1.textContent="Delivery Address:";
+            input1.placeholder="Enter your address";
+            lbl2.textContent="Contact Number:";
+            input2.placeholder="Enter your phone number";
+            break;
+    }
+}
+
+// Submit details from payment form
+function submitPaymentDetails(){
+    const name=document.getElementById("pf-name")?.value.trim();
+    const extra1=document.getElementById("pf-extra-input1")?.value.trim();
+    const extra2=document.getElementById("pf-extra-input2")?.value.trim();
+    if(!name || !extra1 || !extra2){ alert("Please fill all details!"); return;}
+    alert("Payment details submitted successfully!\nWe will verify and confirm your order.");
+    clearCartAfterPayment();
+}
+
+// Confirm bank transfer
+function confirmBankTransfer(){
+    const name=document.getElementById("customer-name").value.trim();
+    const txn=document.getElementById("transaction-id").value.trim();
+    if(!name||!txn){ alert("Please fill all details!"); return;}
+    alert("Bank transfer details submitted successfully!\nWe will verify your payment.");
+    clearCartAfterPayment();
+}
+
+// Attach listeners
+document.getElementById("gpay").addEventListener("click",()=>handlePayment('gpay'));
+document.getElementById("paypal").addEventListener("click",()=>handlePayment('paypal'));
+document.getElementById("bank").addEventListener("click",()=>handlePayment('bank'));
+document.getElementById("cod").addEventListener("click",()=>handlePayment('cod'));
+
+// Initialize
+renderCheckout();
+updateCartCount();
+</script>
+
+</body>
+</html>

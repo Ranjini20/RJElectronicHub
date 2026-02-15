@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RJElectronicHub | Electronics Store</title>
+    <link rel="icon" href="images/rjelectronichub-logo.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Header -->
+<header>
+    <div class="logo">
+        <img src="images/rjelectronichub-logo.svg" alt="RJ ElectronicHub Logo" class="logo-icon">
+    </div>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="smartphones.html">Smartphones</a>
+        <a href="watches.html">Watches</a>
+        <a href="headphones.html">Headphones</a>
+        <a href="laptops.html">Laptops</a>
+        <a href="checkout.html">Cart (<span id="cart-count">0</span>)</a>
+    </nav>
+</header>
+
+<!-- Hero Section -->
+<section class="hero">
+    <h1>Next-Gen Electronics</h1>
+    <p>Smart gadgets for a smarter life</p>
+    <button onclick="location.href='#products'">Shop Now</button>
+</section>
+
+<!-- Search Bar -->
+<section class="search-bar">
+    <input type="text" id="search-input" placeholder="Search products" oninput="handleSearch(event)">
+</section>
+
+<!-- Product Grid -->
+<section class="products" id="products">
+    <h2>Featured Electronics</h2>
+    <div class="product-grid"></div>
+</section>
+
+<!-- Cart Section -->
+<section class="cart" id="cart">
+    <h2>Your Cart</h2>
+    <ul id="cart-items"></ul>
+    <button onclick="window.location.href='checkout.html'">Go to Checkout</button>
+</section>
+
+<!-- Footer -->
+<footer>
+    <p>© 2026 RJElectronicHub. All Rights Reserved.</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>

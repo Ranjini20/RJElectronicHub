@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Laptops | RJElectronicHub</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header>
+    <div class="logo">
+        <img src="images/rjelectronichub-logo.svg" alt="RJ ElectronicHub Logo" class="logo-icon">
+    </div>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="#products">Products</a>
+        <a href="checkout.html">Cart (<span id="cart-count">0</span>)</a>
+    </nav>
+</header>
+
+<section class="products" id="products">
+    <h2>Laptops</h2>
+    <input type="text" id="search-input" placeholder="Search laptops" oninput="handleSearch(event)" />
+
+    <div class="product-grid">
+        <div class="product-card">
+            <img src="images/laptop1.jpg" alt="Laptop Model A" />
+            <h3>Laptop Model A</h3>
+            <p>₹59,999</p>
+            <button onclick="addToCart('Laptop Model A', 59999)">Add to Cart</button>
+        </div>
+
+        <div class="product-card">
+            <img src="images/laptop2.jpg" alt="Laptop Model B" />
+            <h3>Laptop Model B</h3>
+            <p>₹69,999</p>
+            <button onclick="addToCart('Laptop Model B', 69999)">Add to Cart</button>
+        </div>
+
+        <div class="product-card">
+            <img src="images/laptop3.jpg" alt="Laptop Model C" />
+            <h3>Laptop Model C</h3>
+            <p>₹79,999</p>
+            <button onclick="addToCart('Laptop Model C', 79999)">Add to Cart</button>
+        </div>
+    </div>
+</section>
+
+<section class="cart" id="cart">
+    <h2>Your Cart</h2>
+    <ul id="cart-items"></ul>
+    <button onclick="window.location.href='index.html'">Back to Home</button>
+</section>
+
+<footer>
+    <p>© 2026 RJElectronicHub. All Rights Reserved.</p>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
